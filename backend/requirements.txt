@@ -9,3 +9,5 @@ dj-database-url>=2.1
 django-environ>=0.11
 gunicorn>=21.2
 Pillow>=10.2
+
+drf-nested-routers
