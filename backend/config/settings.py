@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     # Local apps
     'apps.accounts',
     'apps.households',
+    'apps.meals',
+    'apps.expenses',
 ]
 
 MIDDLEWARE = [
@@ -152,6 +154,8 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend"
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 SIMPLE_JWT = {
@@ -165,3 +169,6 @@ AUTH_USER_MODEL = 'accounts.User'
 
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

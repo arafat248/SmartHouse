@@ -38,7 +38,7 @@ class HouseholdTests(APITestCase):
         # User2 should not see House 1
         self.client.force_authenticate(user=self.user2)
         response = self.client.get(self.list_create_url)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(len(response.data.get('results', response.data)), 0)
 
     def test_household_permissions(self):
         household = Household.objects.create(name='Test House', owner=self.user1)

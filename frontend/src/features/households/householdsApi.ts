@@ -8,7 +8,7 @@ export const householdsApi = api.injectEndpoints({
     }),
     getHousehold: builder.query({
       query: (id) => `households/${id}/`,
-      providesTags: (result, error, id) => [{ type: 'Household', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Household', id }],
     }),
     createHousehold: builder.mutation({
       query: (data) => ({
@@ -24,11 +24,11 @@ export const householdsApi = api.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'Household', id }],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Household', id }],
     }),
     getMembers: builder.query({
       query: (householdId) => `households/${householdId}/members/`,
-      providesTags: (result, error, id) => [{ type: 'HouseholdMember', id }],
+      providesTags: (_result, _error, id) => [{ type: 'HouseholdMember', id }],
     }),
     inviteMember: builder.mutation({
       query: ({ householdId, email }) => ({
@@ -43,7 +43,7 @@ export const householdsApi = api.injectEndpoints({
         url: `households/${householdId}/members/${memberId}/`,
         method: 'DELETE',
       }),
-      invalidatesTags: (result, error, { householdId }) => [{ type: 'HouseholdMember', id: householdId }],
+      invalidatesTags: (_result, _error, { householdId }) => [{ type: 'HouseholdMember', id: householdId }],
     }),
   }),
 });
