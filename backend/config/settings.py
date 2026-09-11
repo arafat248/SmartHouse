@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     'apps.households',
     'apps.meals',
     'apps.expenses',
+    'apps.deposits',
+    'apps.settlements',
 ]
 
 MIDDLEWARE = [

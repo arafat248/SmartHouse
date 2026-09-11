@@ -23,6 +23,8 @@ urlpatterns = [
     path('api/v1/households/', include('apps.households.urls')),
     path('api/v1/meals/', include('apps.meals.urls')),
     path('api/v1/expenses/', include('apps.expenses.urls')),
+    path('api/v1/deposits/', include('apps.deposits.urls')),
+    path('api/v1/settlements/', include('apps.settlements.urls')),
 ]
 
 from django.conf import settings
