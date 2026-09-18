@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'apps.deposits',
     'apps.settlements',
     'apps.reports',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [

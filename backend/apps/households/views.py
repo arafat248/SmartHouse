@@ -69,6 +69,19 @@ class HouseholdMemberViewSet(viewsets.ModelViewSet):
                 defaults={'invited_by': request.user}
             )
             
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            invited_user = User.objects.filter(email=email).first()
+            if invited_user:
+                from apps.notifications.services import create_notification
+                from apps.notifications.models import Notification
+                create_notification(
+                    user=invited_user,
+                    title="New Household Invitation",
+                    message=f"You have been invited to join the household '{household.name}' by {request.user.first_name}.",
+                    notification_type=Notification.TYPE_INVITATION
+                )
+            
             # In a real app, send email with invitation.token here
             
             return Response(InvitationSerializer(invitation).data, status=status.HTTP_201_CREATED)

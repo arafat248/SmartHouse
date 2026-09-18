@@ -46,6 +46,16 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
             
             serializer = self.get_serializer(settlement)
             data = serializer.data
+            
+            from apps.notifications.services import create_household_notification
+            from apps.notifications.models import Notification
+            create_household_notification(
+                household=settlement.household,
+                title="Settlement Generated",
+                message=f"A new draft settlement for {month}/{year} has been generated.",
+                notification_type=Notification.TYPE_SETTLEMENT
+            )
+            
             data['suggested_transfers'] = SettlementCalculator.calculate_suggested_transfers(settlement)
             
             return Response(data, status=status.HTTP_201_CREATED)
@@ -78,5 +88,18 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
 
         settlement.status = Settlement.STATUS_FINALIZED
         settlement.save()
+        
+        from apps.notifications.services import create_notification
+        from apps.notifications.models import Notification
+        
+        for item in settlement.items.all():
+            balance = item.balance
+            message = f"The settlement for {settlement.month}/{settlement.year} has been finalized. Your balance is {'+' if balance >= 0 else ''}${balance}."
+            create_notification(
+                user=item.member.user,
+                title="Settlement Finalized",
+                message=message,
+                notification_type=Notification.TYPE_BALANCE
+            )
         
         return Response({"detail": "Settlement finalized successfully."})

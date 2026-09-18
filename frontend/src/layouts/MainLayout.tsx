@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { logout } from '../features/auth/authSlice';
+import { NotificationDropdown } from '../features/notifications/components/NotificationDropdown';
 
 export const MainLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -105,6 +106,9 @@ export const MainLayout = () => {
 
       {/* Main Content Area */}
       <main className="layout-main">
+        <div className="flex justify-end p-4 border-b border-slate-200 bg-white">
+          <NotificationDropdown />
+        </div>
         <Outlet />
       </main>
     </div>

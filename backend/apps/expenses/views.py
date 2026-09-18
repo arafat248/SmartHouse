@@ -53,3 +53,15 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             )
             
         return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        expense = serializer.save()
+        from apps.notifications.services import create_household_notification
+        from apps.notifications.models import Notification
+        create_household_notification(
+            household=expense.household,
+            title="New Expense Added",
+            message=f"An expense of ${expense.amount} for {expense.title} was added by {expense.paid_by.user.first_name}.",
+            notification_type=Notification.TYPE_EXPENSE,
+            exclude_user=self.request.user
+        )

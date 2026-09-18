@@ -44,3 +44,33 @@ class DepositViewSet(viewsets.ModelViewSet):
             )
             
         return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        deposit = serializer.save()
+        from apps.notifications.services import create_household_notification, create_notification
+        from apps.notifications.models import Notification
+        from apps.households.models import HouseholdMember
+        
+        # Notify the member whose account got the deposit
+        if deposit.member.user != self.request.user:
+            create_notification(
+                user=deposit.member.user,
+                title="Deposit Recorded",
+                message=f"A deposit of ${deposit.amount} was added to your account by {self.request.user.first_name}.",
+                notification_type=Notification.TYPE_DEPOSIT
+            )
+            
+        # Notify admins (excluding the request user)
+        admins = HouseholdMember.objects.filter(
+            household=deposit.household, 
+            role=HouseholdMember.ROLE_ADMIN,
+            status=HouseholdMember.STATUS_ACTIVE
+        ).exclude(user=self.request.user)
+        
+        for admin in admins:
+            create_notification(
+                user=admin.user,
+                title="New Deposit Recorded",
+                message=f"A deposit of ${deposit.amount} was recorded for {deposit.member.user.first_name}.",
+                notification_type=Notification.TYPE_DEPOSIT
+            )
