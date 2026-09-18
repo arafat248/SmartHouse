@@ -5,7 +5,22 @@ from .models import Meal
 from .serializers import MealSerializer
 from .permissions import IsMealHouseholdMember
 from apps.households.models import HouseholdMember
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='month', 
+                type=OpenApiTypes.STR, 
+                location=OpenApiParameter.QUERY, 
+                description='Filter by month in YYYY-MM format',
+                required=False
+            )
+        ]
+    )
+)
 class MealViewSet(viewsets.ModelViewSet):
     serializer_class = MealSerializer
     permission_classes = [permissions.IsAuthenticated, IsMealHouseholdMember]
@@ -13,6 +28,8 @@ class MealViewSet(viewsets.ModelViewSet):
     filterset_fields = ['date', 'member']
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Meal.objects.none()
         # Only return meals for households where the user is an active member
         queryset = Meal.objects.filter(
             household__members__user=self.request.user,

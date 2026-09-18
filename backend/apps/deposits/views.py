@@ -20,6 +20,8 @@ class DepositViewSet(viewsets.ModelViewSet):
     ordering = ['-deposit_date', '-created_at']
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Deposit.objects.none()
         # Only return deposits for households where the user is an active member
         return Deposit.objects.filter(
             household__members__user=self.request.user,

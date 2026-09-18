@@ -22,7 +22,7 @@ class HouseholdSerializer(serializers.ModelSerializer):
         fields = ('id', 'uuid', 'name', 'description', 'address', 'currency', 'owner', 'owner_detail', 'is_active', 'members_count', 'created_at', 'updated_at')
         read_only_fields = ('id', 'uuid', 'owner', 'is_active', 'created_at', 'updated_at')
 
-    def get_members_count(self, obj):
+    def get_members_count(self, obj) -> int:
         return obj.members.count()
 
 class InvitationSerializer(serializers.ModelSerializer):

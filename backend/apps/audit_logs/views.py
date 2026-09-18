@@ -9,6 +9,8 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return AuditLog.objects.none()
         user = self.request.user
         
         if user.is_superuser:

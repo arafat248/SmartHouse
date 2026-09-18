@@ -13,6 +13,7 @@ from .serializers import (
     ForgotPasswordSerializer, ResetPasswordSerializer
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from apps.audit_logs.services import create_audit_log
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -45,6 +46,11 @@ class MeView(generics.RetrieveUpdateAPIView):
 class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
+    @extend_schema(
+        request=None,
+        responses={205: OpenApiResponse(description='Successful logout')},
+        description="Logout a user by blacklisting their refresh token"
+    )
     def post(self, request):
         try:
             refresh_token = request.data["refresh"]
@@ -82,6 +88,11 @@ class ChangePasswordView(generics.UpdateAPIView):
 class ForgotPasswordView(APIView):
     permission_classes = (permissions.AllowAny,)
 
+    @extend_schema(
+        request=ForgotPasswordSerializer,
+        responses={200: OpenApiResponse(description='Password reset link sent')},
+        description="Request a password reset link via email"
+    )
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         if serializer.is_valid():
@@ -105,6 +116,14 @@ class ForgotPasswordView(APIView):
 class ResetPasswordView(APIView):
     permission_classes = (permissions.AllowAny,)
 
+    @extend_schema(
+        request=ResetPasswordSerializer,
+        responses={
+            200: OpenApiResponse(description='Password reset successful'),
+            400: OpenApiResponse(description='Invalid token or validation error')
+        },
+        description="Reset user password using token and uid"
+    )
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         if serializer.is_valid():

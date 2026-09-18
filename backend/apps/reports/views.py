@@ -17,10 +17,19 @@ from apps.settlements.models import Settlement, SettlementItem
 
 from apps.expenses.serializers import ExpenseSerializer
 from apps.deposits.serializers import DepositSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, inline_serializer
+from rest_framework import serializers
 
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='household', type=int, location=OpenApiParameter.QUERY, description='Household ID', required=False)
+        ],
+        responses={200: inline_serializer(name='DashboardResponse', fields={'metrics': serializers.DictField(), 'recent_activity': serializers.DictField(), 'charts': serializers.DictField()})},
+        description="Get dashboard metrics, recent activity, and chart data."
+    )
     def get(self, request):
         # Determine active household context
         household_id = request.query_params.get('household')
@@ -168,6 +177,8 @@ class ExpenseReportView(ListAPIView):
     filterset_class = ExpenseFilter
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Expense.objects.none()
         household_id = self.request.query_params.get('household')
         if not household_id:
             membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
@@ -200,6 +211,8 @@ class DepositReportView(ListAPIView):
     filterset_class = DepositFilter
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Deposit.objects.none()
         household_id = self.request.query_params.get('household')
         if not household_id:
             membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
@@ -220,6 +233,16 @@ class DepositReportView(ListAPIView):
 
 class DailyReportView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='household', type=int, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='start_date', type=str, location=OpenApiParameter.QUERY, description='YYYY-MM-DD', required=True),
+            OpenApiParameter(name='end_date', type=str, location=OpenApiParameter.QUERY, description='YYYY-MM-DD', required=True)
+        ],
+        responses={200: inline_serializer(name='DailyReportResponse', fields={'results': serializers.ListField()})},
+        description="Get daily totals for expenses, deposits, and meals within a date range."
+    )
     def get(self, request):
         household_id = request.query_params.get('household')
         if not household_id:
@@ -264,6 +287,16 @@ class DailyReportView(APIView):
 
 class MonthlyReportView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='household', type=int, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='month', type=int, location=OpenApiParameter.QUERY, required=True),
+            OpenApiParameter(name='year', type=int, location=OpenApiParameter.QUERY, required=True)
+        ],
+        responses={200: inline_serializer(name='MonthlyReportResponse', fields={'summary': serializers.DictField(), 'members': serializers.ListField()})},
+        description="Get comprehensive monthly report including meal rates, member balances, and total expenses."
+    )
     def get(self, request):
         household_id = request.query_params.get('household')
         if not household_id:
@@ -357,6 +390,16 @@ class MonthlyReportView(APIView):
 
 class MemberReportView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='household', type=int, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='start_date', type=str, location=OpenApiParameter.QUERY, description='YYYY-MM-DD', required=True),
+            OpenApiParameter(name='end_date', type=str, location=OpenApiParameter.QUERY, description='YYYY-MM-DD', required=True)
+        ],
+        responses={200: inline_serializer(name='MemberReportResponse', fields={'results': serializers.ListField()})},
+        description="Get aggregate member activity (meals, deposits, expenses) within a date range."
+    )
     def get(self, request):
         household_id = request.query_params.get('household')
         if not household_id:

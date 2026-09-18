@@ -8,12 +8,15 @@ from .serializers import (
     InvitationSerializer, InviteMemberSerializer
 )
 from .permissions import IsHouseholdMember, IsHouseholdAdmin
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 
 class HouseholdViewSet(viewsets.ModelViewSet):
     serializer_class = HouseholdSerializer
     permission_classes = [permissions.IsAuthenticated, IsHouseholdMember]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Household.objects.none()
         # Users can only see households where they are members
         return Household.objects.filter(
             members__user=self.request.user, 
@@ -62,6 +65,15 @@ class HouseholdMemberViewSet(viewsets.ModelViewSet):
             entity_id=member_id
         )
 
+    @extend_schema(
+        request=InviteMemberSerializer,
+        responses={
+            201: InvitationSerializer,
+            400: OpenApiResponse(description="Validation error or user already a member"),
+            403: OpenApiResponse(description="Forbidden")
+        },
+        description="Invite a new member to the household"
+    )
     @action(detail=False, methods=['post'], serializer_class=InviteMemberSerializer)
     def invite(self, request, household_pk=None):
         household = get_object_or_404(Household, pk=household_pk)

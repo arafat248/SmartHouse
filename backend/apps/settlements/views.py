@@ -6,17 +6,33 @@ from .serializers import SettlementSerializer
 from .services import SettlementCalculator
 from apps.households.permissions import IsHouseholdAdmin
 from apps.households.models import HouseholdMember
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 
 class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SettlementSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Settlement.objects.none()
         return Settlement.objects.filter(
             household__members__user=self.request.user,
             household__members__status=HouseholdMember.STATUS_ACTIVE
         ).distinct()
 
+    @extend_schema(
+        request=inline_serializer(
+            name='GenerateSettlementRequest',
+            fields={
+                'household': serializers.IntegerField(),
+                'month': serializers.IntegerField(),
+                'year': serializers.IntegerField(),
+            }
+        ),
+        responses={201: SettlementSerializer, 400: None, 403: None},
+        description="Generate a draft settlement for a given household, month, and year."
+    )
     @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def generate(self, request):
         household_id = request.data.get('household')
@@ -79,6 +95,11 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
         data['suggested_transfers'] = SettlementCalculator.calculate_suggested_transfers(instance)
         return Response(data)
 
+    @extend_schema(
+        request=None,
+        responses={200: inline_serializer(name='FinalizeSettlementResponse', fields={'detail': serializers.CharField()}), 400: None, 403: None},
+        description="Finalize a draft settlement, sending notifications to all members with their balances."
+    )
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def finalize(self, request, pk=None):
         settlement = self.get_object()

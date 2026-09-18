@@ -29,6 +29,8 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     ordering = ['-expense_date', '-created_at']
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Expense.objects.none()
         # Only return expenses for households where the user is an active member
         return Expense.objects.filter(
             household__members__user=self.request.user,
