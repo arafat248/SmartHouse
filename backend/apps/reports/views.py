@@ -1,4 +1,7 @@
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Count
@@ -150,3 +153,247 @@ class DashboardView(APIView):
                 "member_meal_consumption": member_meal_consumption
             }
         })
+
+class ExpenseFilter(django_filters.FilterSet):
+    start_date = django_filters.DateFilter(field_name="expense_date", lookup_expr='gte')
+    end_date = django_filters.DateFilter(field_name="expense_date", lookup_expr='lte')
+    class Meta:
+        model = Expense
+        fields = ['category', 'start_date', 'end_date']
+
+class ExpenseReportView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ExpenseSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ExpenseFilter
+
+    def get_queryset(self):
+        household_id = self.request.query_params.get('household')
+        if not household_id:
+            membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
+            household_id = membership.household_id if membership else None
+        return Expense.objects.filter(household_id=household_id).order_by('-expense_date')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        total_amount = queryset.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            response.data['summary'] = {'total_expense': float(total_amount)}
+            return response
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data, 'summary': {'total_expense': float(total_amount)}})
+
+class DepositFilter(django_filters.FilterSet):
+    start_date = django_filters.DateFilter(field_name="deposit_date", lookup_expr='gte')
+    end_date = django_filters.DateFilter(field_name="deposit_date", lookup_expr='lte')
+    class Meta:
+        model = Deposit
+        fields = ['member', 'start_date', 'end_date']
+
+class DepositReportView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DepositSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DepositFilter
+
+    def get_queryset(self):
+        household_id = self.request.query_params.get('household')
+        if not household_id:
+            membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
+            household_id = membership.household_id if membership else None
+        return Deposit.objects.filter(household_id=household_id).order_by('-deposit_date')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        total_amount = queryset.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            response.data['summary'] = {'total_deposit': float(total_amount)}
+            return response
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data, 'summary': {'total_deposit': float(total_amount)}})
+
+class DailyReportView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        household_id = request.query_params.get('household')
+        if not household_id:
+            membership = HouseholdMember.objects.filter(user=request.user, status=HouseholdMember.STATUS_ACTIVE).first()
+            household_id = membership.household_id if membership else None
+        
+        start_date_str = request.query_params.get('start_date')
+        end_date_str = request.query_params.get('end_date')
+        
+        if not start_date_str or not end_date_str:
+            return Response({"detail": "start_date and end_date are required"}, status=400)
+            
+        try:
+            start_date = timezone.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = timezone.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
+
+        # Generate list of dates
+        delta = end_date - start_date
+        dates = [start_date + timedelta(days=i) for i in range(delta.days + 1)]
+        
+        # Fetch data
+        expenses = Expense.objects.filter(household_id=household_id, expense_date__range=[start_date, end_date]).values('expense_date').annotate(total=Sum('amount'))
+        deposits = Deposit.objects.filter(household_id=household_id, deposit_date__range=[start_date, end_date]).values('deposit_date').annotate(total=Sum('amount'))
+        meals = Meal.objects.filter(household_id=household_id, date__range=[start_date, end_date]).values('date').annotate(total=Sum('breakfast') + Sum('lunch') + Sum('dinner') + Sum('guest_meals'))
+        
+        exp_dict = {item['expense_date']: float(item['total']) for item in expenses}
+        dep_dict = {item['deposit_date']: float(item['total']) for item in deposits}
+        meal_dict = {item['date']: float(item['total']) for item in meals}
+        
+        results = []
+        for d in dates:
+            results.append({
+                "date": d.strftime('%Y-%m-%d'),
+                "total_expense": exp_dict.get(d, 0.0),
+                "total_deposit": dep_dict.get(d, 0.0),
+                "total_meals": meal_dict.get(d, 0.0)
+            })
+            
+        return Response(results)
+
+class MonthlyReportView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        household_id = request.query_params.get('household')
+        if not household_id:
+            membership = HouseholdMember.objects.filter(user=request.user, status=HouseholdMember.STATUS_ACTIVE).first()
+            household_id = membership.household_id if membership else None
+            
+        month_str = request.query_params.get('month')
+        year_str = request.query_params.get('year')
+        
+        if not month_str or not year_str:
+            return Response({"detail": "month and year are required"}, status=400)
+            
+        try:
+            month = int(month_str)
+            year = int(year_str)
+        except ValueError:
+            return Response({"detail": "Invalid month or year"}, status=400)
+            
+        household = Household.objects.get(id=household_id)
+        members = HouseholdMember.objects.filter(household=household, status=HouseholdMember.STATUS_ACTIVE)
+        
+        expenses = Expense.objects.filter(household=household, expense_date__year=year, expense_date__month=month)
+        meal_expenses = expenses.filter(category__name__in=['Groceries', 'Market'])
+        other_expenses = expenses.exclude(category__name__in=['Groceries', 'Market'])
+        
+        total_meal_expense = meal_expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_other_expense = other_expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_expense = total_meal_expense + total_other_expense
+        
+        meals = Meal.objects.filter(household=household, date__year=year, date__month=month)
+        
+        member_meals = {m.id: Decimal('0.00') for m in members}
+        total_meals = Decimal('0.00')
+        for meal in meals:
+            if meal.member_id in member_meals:
+                member_meals[meal.member_id] += meal.total_meals
+            total_meals += meal.total_meals
+            
+        meal_rate = Decimal('0.0000')
+        if total_meals > Decimal('0.00'):
+            meal_rate = total_meal_expense / total_meals
+            
+        num_members = members.count()
+        other_cost_per_member = Decimal('0.00')
+        if num_members > 0:
+            other_cost_per_member = total_other_expense / num_members
+            
+        deposits = Deposit.objects.filter(household=household, deposit_date__year=year, deposit_date__month=month)
+        member_deposits = {m.id: Decimal('0.00') for m in members}
+        total_deposits = Decimal('0.00')
+        
+        for d in deposits:
+            if d.member_id in member_deposits:
+                member_deposits[d.member_id] += d.amount
+            total_deposits += d.amount
+            
+        for e in expenses:
+            if e.paid_by_id in member_deposits:
+                member_deposits[e.paid_by_id] += e.amount
+                total_deposits += e.amount
+                
+        member_results = []
+        for m in members:
+            m_meals = member_meals.get(m.id, Decimal('0.00'))
+            m_meal_cost = m_meals * meal_rate
+            m_other_cost = other_cost_per_member
+            m_total_cost = m_meal_cost + m_other_cost
+            m_total_deposit = member_deposits.get(m.id, Decimal('0.00'))
+            m_balance = m_total_deposit - m_total_cost
+            
+            member_results.append({
+                "member_name": f"{m.user.first_name} {m.user.last_name}",
+                "total_meals": float(m_meals),
+                "meal_cost": float(m_meal_cost),
+                "other_cost": float(m_other_cost),
+                "total_cost": float(m_total_cost),
+                "total_deposit": float(m_total_deposit),
+                "balance": float(m_balance)
+            })
+            
+        return Response({
+            "summary": {
+                "total_expense": float(total_expense),
+                "total_food_expense": float(total_meal_expense),
+                "total_meals": float(total_meals),
+                "meal_rate": float(meal_rate),
+                "total_deposits": float(total_deposits)
+            },
+            "members": member_results
+        })
+
+class MemberReportView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        household_id = request.query_params.get('household')
+        if not household_id:
+            membership = HouseholdMember.objects.filter(user=request.user, status=HouseholdMember.STATUS_ACTIVE).first()
+            household_id = membership.household_id if membership else None
+            
+        start_date_str = request.query_params.get('start_date')
+        end_date_str = request.query_params.get('end_date')
+        
+        if not start_date_str or not end_date_str:
+            return Response({"detail": "start_date and end_date are required"}, status=400)
+            
+        try:
+            start_date = timezone.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = timezone.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"detail": "Invalid date format. Use YYYY-MM-DD"}, status=400)
+            
+        household = Household.objects.get(id=household_id)
+        members = HouseholdMember.objects.filter(household=household, status=HouseholdMember.STATUS_ACTIVE)
+        
+        meals = Meal.objects.filter(household=household, date__range=[start_date, end_date]).values('member_id').annotate(total=Sum('breakfast') + Sum('lunch') + Sum('dinner') + Sum('guest_meals'))
+        deposits = Deposit.objects.filter(household=household, deposit_date__range=[start_date, end_date]).values('member_id').annotate(total=Sum('amount'))
+        expenses = Expense.objects.filter(household=household, expense_date__range=[start_date, end_date]).values('paid_by_id').annotate(total=Sum('amount'))
+        
+        meal_dict = {item['member_id']: float(item['total']) for item in meals}
+        dep_dict = {item['member_id']: float(item['total']) for item in deposits}
+        exp_dict = {item['paid_by_id']: float(item['total']) for item in expenses}
+        
+        results = []
+        for m in members:
+            results.append({
+                "member_id": m.id,
+                "member_name": f"{m.user.first_name} {m.user.last_name}",
+                "total_meals": meal_dict.get(m.id, 0.0),
+                "total_deposits": dep_dict.get(m.id, 0.0),
+                "total_expenses_paid": exp_dict.get(m.id, 0.0)
+            })
+            
+        return Response(results)

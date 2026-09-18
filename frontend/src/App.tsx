@@ -7,6 +7,7 @@ import { DepositsPage } from './pages/DepositsPage';
 import { SettlementsPage } from './pages/SettlementsPage';
 import { SettlementDetailsPage } from './pages/SettlementDetailsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { ReportsPage } from './pages/reports/ReportsPage';
 
 import './App.css';
 
@@ -19,6 +20,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/households/*" element={<div>Households (To be implemented)</div>} />
           <Route path="/meals/*" element={<MealsDashboard />} />
           <Route path="/expenses/*" element={<ExpensesPage />} />
