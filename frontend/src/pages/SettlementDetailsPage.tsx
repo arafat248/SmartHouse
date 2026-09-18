@@ -133,6 +133,7 @@ export const SettlementDetailsPage = () => {
               </li>
             ))}
           </ul>
+          
         </div>
       )}
     </div>
