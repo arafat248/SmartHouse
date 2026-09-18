@@ -74,3 +74,42 @@ class DepositViewSet(viewsets.ModelViewSet):
                 message=f"A deposit of ${deposit.amount} was recorded for {deposit.member.user.first_name}.",
                 notification_type=Notification.TYPE_DEPOSIT
             )
+            
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='ADD_DEPOSIT',
+            description=f"Added deposit of ${deposit.amount} for {deposit.member.user.first_name}",
+            household=deposit.household,
+            entity='Deposit',
+            entity_id=deposit.id
+        )
+
+    def perform_update(self, serializer):
+        deposit = serializer.save()
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='UPDATE_DEPOSIT',
+            description=f"Updated deposit for {deposit.member.user.first_name} to ${deposit.amount}",
+            household=deposit.household,
+            entity='Deposit',
+            entity_id=deposit.id
+        )
+
+    def perform_destroy(self, instance):
+        household = instance.household
+        member_name = instance.member.user.first_name
+        amount = instance.amount
+        deposit_id = instance.id
+        instance.delete()
+        
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='DELETE_DEPOSIT',
+            description=f"Deleted deposit of ${amount} for {member_name}",
+            household=household,
+            entity='Deposit',
+            entity_id=deposit_id
+        )

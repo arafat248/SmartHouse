@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/v1/settlements/', include('apps.settlements.urls')),
     path('api/v1/reports/', include('apps.reports.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
+    path('api/v1/audit/', include('apps.audit_logs.urls')),
 ]
 
 from django.conf import settings

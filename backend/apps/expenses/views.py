@@ -65,3 +65,41 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             notification_type=Notification.TYPE_EXPENSE,
             exclude_user=self.request.user
         )
+        
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='CREATE_EXPENSE',
+            description=f"Created expense '{expense.title}' for ${expense.amount}",
+            household=expense.household,
+            entity='Expense',
+            entity_id=expense.id
+        )
+
+    def perform_update(self, serializer):
+        expense = serializer.save()
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='UPDATE_EXPENSE',
+            description=f"Updated expense '{expense.title}'",
+            household=expense.household,
+            entity='Expense',
+            entity_id=expense.id
+        )
+
+    def perform_destroy(self, instance):
+        household = instance.household
+        title = instance.title
+        expense_id = instance.id
+        instance.delete()
+        
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='DELETE_EXPENSE',
+            description=f"Deleted expense '{title}'",
+            household=household,
+            entity='Expense',
+            entity_id=expense_id
+        )

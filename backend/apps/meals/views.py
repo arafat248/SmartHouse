@@ -46,3 +46,44 @@ class MealViewSet(viewsets.ModelViewSet):
             )
             
         return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        meal = serializer.save()
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='CREATE_MEAL',
+            description=f"Logged {meal.meal_count} meal(s) for {meal.member.user.first_name} on {meal.date}",
+            household=meal.household,
+            entity='Meal',
+            entity_id=meal.id
+        )
+
+    def perform_update(self, serializer):
+        meal = serializer.save()
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='UPDATE_MEAL',
+            description=f"Updated meal entry for {meal.member.user.first_name} on {meal.date}",
+            household=meal.household,
+            entity='Meal',
+            entity_id=meal.id
+        )
+
+    def perform_destroy(self, instance):
+        household = instance.household
+        member_name = instance.member.user.first_name
+        date = instance.date
+        meal_id = instance.id
+        instance.delete()
+        
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='DELETE_MEAL',
+            description=f"Deleted meal entry for {member_name} on {date}",
+            household=household,
+            entity='Meal',
+            entity_id=meal_id
+        )

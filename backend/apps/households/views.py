@@ -46,6 +46,22 @@ class HouseholdMemberViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsHouseholdAdmin()]
         return super().get_permissions()
 
+    def perform_destroy(self, instance):
+        household = instance.household
+        user_email = instance.user.email
+        member_id = instance.id
+        instance.delete()
+        
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=self.request,
+            action='REMOVE_MEMBER',
+            description=f"Removed member {user_email} from household",
+            household=household,
+            entity='HouseholdMember',
+            entity_id=member_id
+        )
+
     @action(detail=False, methods=['post'], serializer_class=InviteMemberSerializer)
     def invite(self, request, household_pk=None):
         household = get_object_or_404(Household, pk=household_pk)
@@ -81,6 +97,16 @@ class HouseholdMemberViewSet(viewsets.ModelViewSet):
                     message=f"You have been invited to join the household '{household.name}' by {request.user.first_name}.",
                     notification_type=Notification.TYPE_INVITATION
                 )
+                
+            from apps.audit_logs.services import create_audit_log
+            create_audit_log(
+                request=request,
+                action='INVITE_MEMBER',
+                description=f"Invited {email} to household",
+                household=household,
+                entity='Invitation',
+                entity_id=invitation.id
+            )
             
             # In a real app, send email with invitation.token here
             

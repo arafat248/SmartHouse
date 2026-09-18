@@ -12,6 +12,21 @@ from .serializers import (
     UserSerializer, RegisterSerializer, ChangePasswordSerializer,
     ForgotPasswordSerializer, ResetPasswordSerializer
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
+from apps.audit_logs.services import create_audit_log
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            user = User.objects.get(email=request.data.get('email'))
+            create_audit_log(
+                request=request,
+                action='LOGIN',
+                description='User logged in',
+                user=user
+            )
+        return response
 
 User = get_user_model()
 
@@ -35,6 +50,11 @@ class LogoutView(APIView):
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
+            create_audit_log(
+                request=request,
+                action='LOGOUT',
+                description='User logged out'
+            )
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)

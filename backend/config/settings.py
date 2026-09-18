@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'apps.settlements',
     'apps.reports',
     'apps.notifications',
+    'apps.audit_logs',
 ]
 
 MIDDLEWARE = [

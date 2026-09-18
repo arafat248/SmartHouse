@@ -9,6 +9,7 @@ import { SettlementDetailsPage } from './pages/SettlementDetailsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { NotificationsPage } from './pages/notifications/NotificationsPage';
+import AuditLogPage from './pages/audit/AuditLogPage';
 
 import './App.css';
 
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/audit" element={<AuditLogPage />} />
           <Route path="/households/*" element={<div>Households (To be implemented)</div>} />
           <Route path="/meals/*" element={<MealsDashboard />} />
           <Route path="/expenses/*" element={<ExpensesPage />} />

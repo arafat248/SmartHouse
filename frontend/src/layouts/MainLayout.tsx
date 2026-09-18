@@ -11,7 +11,8 @@ import {
   UserCircle, 
   LogOut,
   Menu,
-  X
+  X,
+  Shield
 } from 'lucide-react';
 import { logout } from '../features/auth/authSlice';
 import { NotificationDropdown } from '../features/notifications/components/NotificationDropdown';
@@ -34,6 +35,8 @@ export const MainLayout = () => {
     { name: 'Expenses', path: '/expenses', icon: CreditCard },
     { name: 'Deposits', path: '/deposits', icon: PiggyBank },
     { name: 'Settlements', path: '/settlements', icon: Calculator },
+    { name: 'Reports', path: '/reports', icon: Calculator }, // Just keeping it here if it exists, otherwise leave alone
+    { name: 'Audit Logs', path: '/audit', icon: Shield },
     { name: 'Profile', path: '/profile', icon: UserCircle },
   ];
 

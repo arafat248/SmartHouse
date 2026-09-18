@@ -56,6 +56,16 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
                 notification_type=Notification.TYPE_SETTLEMENT
             )
             
+            from apps.audit_logs.services import create_audit_log
+            create_audit_log(
+                request=request,
+                action='CREATE_SETTLEMENT',
+                description=f"Generated settlement for {month}/{year}",
+                household=settlement.household,
+                entity='Settlement',
+                entity_id=settlement.id
+            )
+            
             data['suggested_transfers'] = SettlementCalculator.calculate_suggested_transfers(settlement)
             
             return Response(data, status=status.HTTP_201_CREATED)
@@ -101,5 +111,15 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
                 message=message,
                 notification_type=Notification.TYPE_BALANCE
             )
+            
+        from apps.audit_logs.services import create_audit_log
+        create_audit_log(
+            request=request,
+            action='FINALIZE_SETTLEMENT',
+            description=f"Finalized settlement for {settlement.month}/{settlement.year}",
+            household=settlement.household,
+            entity='Settlement',
+            entity_id=settlement.id
+        )
         
         return Response({"detail": "Settlement finalized successfully."})
