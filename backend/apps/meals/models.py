@@ -17,6 +17,10 @@ class Meal(models.Model):
     class Meta:
         unique_together = ('household', 'member', 'date')
         ordering = ['-date']
+        indexes = [
+            models.Index(fields=['household', 'date']),
+            models.Index(fields=['member', 'date']),
+        ]
 
     def __str__(self):
         return f"{self.member.user.email} - {self.date}"

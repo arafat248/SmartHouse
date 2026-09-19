@@ -32,6 +32,10 @@ class Expense(models.Model):
 
     class Meta:
         ordering = ['-expense_date', '-created_at']
+        indexes = [
+            models.Index(fields=['household', 'expense_date']),
+            models.Index(fields=['paid_by', 'expense_date']),
+        ]
 
     def __str__(self):
         return f"{self.title} - {self.amount}"

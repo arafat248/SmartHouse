@@ -31,7 +31,7 @@ class MealViewSet(viewsets.ModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Meal.objects.none()
         # Only return meals for households where the user is an active member
-        queryset = Meal.objects.filter(
+        queryset = Meal.objects.select_related('member__user').filter(
             household__members__user=self.request.user,
             household__members__status=HouseholdMember.STATUS_ACTIVE
         ).distinct()

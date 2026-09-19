@@ -24,6 +24,9 @@ class Settlement(models.Model):
 
     class Meta:
         ordering = ['-year', '-month']
+        indexes = [
+            models.Index(fields=['household', 'year', 'month']),
+        ]
 
     def __str__(self):
         return f"Settlement {self.month}/{self.year} for {self.household.name}"

@@ -16,7 +16,7 @@ class SettlementViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):
             return Settlement.objects.none()
-        return Settlement.objects.filter(
+        return Settlement.objects.prefetch_related('items__member__user').filter(
             household__members__user=self.request.user,
             household__members__status=HouseholdMember.STATUS_ACTIVE
         ).distinct()

@@ -32,7 +32,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Expense.objects.none()
         # Only return expenses for households where the user is an active member
-        return Expense.objects.filter(
+        return Expense.objects.select_related('category', 'paid_by__user').filter(
             household__members__user=self.request.user,
             household__members__status=HouseholdMember.STATUS_ACTIVE
         ).distinct()

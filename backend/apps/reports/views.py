@@ -70,11 +70,11 @@ class DashboardView(APIView):
         )['total'] or Decimal('0.00')
 
         # Recent Items
-        recent_expenses = Expense.objects.filter(household=household).order_by('-expense_date', '-created_at')[:5]
-        recent_deposits = Deposit.objects.filter(household=household).order_by('-deposit_date', '-created_at')[:5]
+        recent_expenses = Expense.objects.select_related('category', 'paid_by__user').filter(household=household).order_by('-expense_date', '-created_at')[:5]
+        recent_deposits = Deposit.objects.select_related('member__user').filter(household=household).order_by('-deposit_date', '-created_at')[:5]
         
         # We don't have a MealSerializer readily available, so we'll build a simple dict
-        recent_meals_qs = Meal.objects.filter(household=household).order_by('-date', '-created_at')[:5]
+        recent_meals_qs = Meal.objects.select_related('member__user').filter(household=household).order_by('-date', '-created_at')[:5]
         recent_meals = [
             {
                 "id": m.id,
@@ -183,7 +183,7 @@ class ExpenseReportView(ListAPIView):
         if not household_id:
             membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
             household_id = membership.household_id if membership else None
-        return Expense.objects.filter(household_id=household_id).order_by('-expense_date')
+        return Expense.objects.select_related('category', 'paid_by__user').filter(household_id=household_id).order_by('-expense_date')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -217,7 +217,7 @@ class DepositReportView(ListAPIView):
         if not household_id:
             membership = HouseholdMember.objects.filter(user=self.request.user, status=HouseholdMember.STATUS_ACTIVE).first()
             household_id = membership.household_id if membership else None
-        return Deposit.objects.filter(household_id=household_id).order_by('-deposit_date')
+        return Deposit.objects.select_related('member__user').filter(household_id=household_id).order_by('-deposit_date')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

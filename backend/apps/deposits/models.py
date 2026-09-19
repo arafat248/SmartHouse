@@ -36,6 +36,10 @@ class Deposit(models.Model):
 
     class Meta:
         ordering = ['-deposit_date', '-created_at']
+        indexes = [
+            models.Index(fields=['household', 'deposit_date']),
+            models.Index(fields=['member', 'deposit_date']),
+        ]
 
     def __str__(self):
         return f"Deposit of {self.amount} by {self.member.user.email} on {self.deposit_date}"

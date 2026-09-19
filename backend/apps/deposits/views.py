@@ -23,7 +23,7 @@ class DepositViewSet(viewsets.ModelViewSet):
         if getattr(self, "swagger_fake_view", False):
             return Deposit.objects.none()
         # Only return deposits for households where the user is an active member
-        return Deposit.objects.filter(
+        return Deposit.objects.select_related('member__user').filter(
             household__members__user=self.request.user,
             household__members__status=HouseholdMember.STATUS_ACTIVE
         ).distinct()
