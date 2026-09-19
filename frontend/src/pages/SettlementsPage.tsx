@@ -29,8 +29,8 @@ export const SettlementsPage = () => {
       }).unwrap();
       alert('Settlement generated successfully!');
       setPage(1);
-    } catch (error: any) {
-      alert(error.data?.detail || 'Failed to generate settlement. Make sure you are an admin.');
+    } catch (error) {
+      alert((error as { data?: { detail?: string } })?.data?.detail || 'Failed to generate settlement. Make sure you are an admin.');
     }
   };
 
@@ -47,7 +47,7 @@ export const SettlementsPage = () => {
             <label>Household</label>
             <select value={householdId} onChange={(e) => setHouseholdId(e.target.value)} required>
               <option value="">Select Household</option>
-              {households?.map((h: any) => (
+              {households?.map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
               ))}
             </select>

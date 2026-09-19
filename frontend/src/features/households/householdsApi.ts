@@ -1,16 +1,17 @@
 import { api } from '../../services/api';
+import type { Household, HouseholdInput, HouseholdMember } from '../../types/household';
 
 export const householdsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getHouseholds: builder.query({
+    getHouseholds: builder.query<Household[], void>({
       query: () => 'households/',
       providesTags: ['Household'],
     }),
-    getHousehold: builder.query({
+    getHousehold: builder.query<Household, number>({
       query: (id) => `households/${id}/`,
       providesTags: (_result, _error, id) => [{ type: 'Household', id }],
     }),
-    createHousehold: builder.mutation({
+    createHousehold: builder.mutation<Household, HouseholdInput>({
       query: (data) => ({
         url: 'households/',
         method: 'POST',
@@ -18,7 +19,7 @@ export const householdsApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Household'],
     }),
-    updateHousehold: builder.mutation({
+    updateHousehold: builder.mutation<Household, { id: number } & Partial<HouseholdInput>>({
       query: ({ id, ...data }) => ({
         url: `households/${id}/`,
         method: 'PATCH',
@@ -26,11 +27,11 @@ export const householdsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: 'Household', id }],
     }),
-    getMembers: builder.query({
+    getMembers: builder.query<HouseholdMember[], number>({
       query: (householdId) => `households/${householdId}/members/`,
       providesTags: (_result, _error, id) => [{ type: 'HouseholdMember', id }],
     }),
-    inviteMember: builder.mutation({
+    inviteMember: builder.mutation<any, { householdId: number; email: string }>({
       query: ({ householdId, email }) => ({
         url: `households/${householdId}/members/invite/`,
         method: 'POST',
@@ -38,7 +39,7 @@ export const householdsApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Invitation'],
     }),
-    removeMember: builder.mutation({
+    removeMember: builder.mutation<void, { householdId: number; memberId: number }>({
       query: ({ householdId, memberId }) => ({
         url: `households/${householdId}/members/${memberId}/`,
         method: 'DELETE',

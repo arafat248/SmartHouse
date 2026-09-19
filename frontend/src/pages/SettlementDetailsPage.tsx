@@ -16,8 +16,8 @@ export const SettlementDetailsPage = () => {
       try {
         await finalizeSettlement(settlement.id).unwrap();
         alert('Settlement finalized successfully!');
-      } catch (error: any) {
-        alert(error.data?.detail || 'Failed to finalize settlement. Make sure you are an admin.');
+      } catch (error) {
+        alert((error as { data?: { detail?: string } })?.data?.detail || 'Failed to finalize settlement. Make sure you are an admin.');
       }
     }
   };

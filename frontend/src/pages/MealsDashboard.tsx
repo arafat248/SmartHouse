@@ -26,7 +26,7 @@ export const MealsDashboard: React.FC = () => {
   const { data: members } = useGetMembersQuery(householdId, { skip: !householdId });
 
   // Query API
-  const queryParams: any = {};
+  const queryParams: Record<string, string | number> = {};
   if (filterDate) queryParams.date = filterDate;
   if (filterMonth && !filterDate) queryParams.month = filterMonth;
   if (filterMember) queryParams.member = filterMember;
@@ -65,7 +65,7 @@ export const MealsDashboard: React.FC = () => {
         await createMeal(formData).unwrap();
       }
       setIsFormOpen(false);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to save meal', err);
       alert(err.data?.non_field_errors?.[0] || 'Failed to save meal. Ensure no duplicate entry exists for this date.');
     }
@@ -123,7 +123,7 @@ export const MealsDashboard: React.FC = () => {
               onChange={(e) => setFilterMember(e.target.value ? parseInt(e.target.value, 10) : '')}
             >
               <option value="">All Members</option>
-              {members?.map((m: any) => (
+              {members?.map((m) => (
                 <option key={m.id} value={m.id}>{m.user_detail?.first_name || m.user_detail?.email}</option>
               ))}
             </select>

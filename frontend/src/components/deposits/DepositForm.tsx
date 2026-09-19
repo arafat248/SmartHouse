@@ -55,7 +55,7 @@ export const DepositForm = ({ deposit, onSave, onCancel }: DepositFormProps) => 
             <label>Household</label>
             <select value={householdId} onChange={(e) => setHouseholdId(e.target.value)} required disabled={!!deposit}>
               <option value="">Select Household</option>
-              {households?.map((h: any) => (
+              {households?.map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
               ))}
             </select>
@@ -65,7 +65,7 @@ export const DepositForm = ({ deposit, onSave, onCancel }: DepositFormProps) => 
             <label>Member</label>
             <select value={memberId} onChange={(e) => setMemberId(e.target.value)} required disabled={!householdId}>
               <option value="">Select Member</option>
-              {members?.map((m: any) => (
+              {members?.map((m) => (
                 <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name} ({m.user.email})</option>
               ))}
             </select>

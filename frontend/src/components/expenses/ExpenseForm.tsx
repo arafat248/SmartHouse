@@ -51,7 +51,7 @@ export const ExpenseForm = ({ expense, categories, onSave, onCancel }: ExpenseFo
             <label>Household</label>
             <select value={householdId} onChange={(e) => setHouseholdId(e.target.value)} required>
               <option value="">Select Household</option>
-              {households?.map((h: any) => (
+              {households?.map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
               ))}
             </select>
@@ -81,7 +81,7 @@ export const ExpenseForm = ({ expense, categories, onSave, onCancel }: ExpenseFo
             <label>Paid By</label>
             <select value={paidBy} onChange={(e) => setPaidBy(e.target.value)} required disabled={!householdId}>
               <option value="">Select Member</option>
-              {members?.map((m: any) => (
+              {members?.map((m) => (
                 <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
               ))}
             </select>

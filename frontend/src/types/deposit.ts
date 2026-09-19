@@ -1,8 +1,10 @@
+import type { HouseholdMember } from './household';
+
 export interface Deposit {
   id: number;
   household: number;
   member: number;
-  member_detail: any;
+  member_detail: HouseholdMember;
   amount: string;
   deposit_date: string;
   payment_method: string;

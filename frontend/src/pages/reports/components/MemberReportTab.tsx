@@ -72,7 +72,7 @@ export function MemberReportTab() {
                     <XAxis dataKey="member_name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                     <RechartsTooltip 
-                      formatter={(value: any) => [`$${Number(value).toFixed(2)}`, undefined]}
+                      formatter={(value: number) => [`$${Number(value).toFixed(2)}`, undefined]}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Legend />

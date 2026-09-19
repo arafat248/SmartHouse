@@ -1,3 +1,5 @@
+import type { HouseholdMember } from './household';
+
 export interface ExpenseCategory {
   id: number;
   name: string;
@@ -13,7 +15,7 @@ export interface Expense {
   category: number | null;
   category_detail: ExpenseCategory | null;
   paid_by: number;
-  paid_by_detail: any; // We can use any or define HouseholdMember
+  paid_by_detail: HouseholdMember;
   expense_date: string;
   description: string;
   receipt: string | null;

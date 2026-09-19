@@ -54,8 +54,8 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel, de
           <div className="form-group">
             <label>Household:</label>
             <select name="household" value={formData.household} onChange={handleChange} required>
-              <option value={0} disabled>Select a Household</option>
-              {households?.map((h: any) => (
+              <option value="">Select Household</option>
+              {households?.map((h) => (
                 <option key={h.id} value={h.id}>{h.name}</option>
               ))}
             </select>
@@ -64,9 +64,9 @@ export const MealForm: React.FC<MealFormProps> = ({ meal, onSubmit, onCancel, de
           <div className="form-group">
             <label>Member:</label>
             <select name="member" value={formData.member} onChange={handleChange} required disabled={!formData.household}>
-              <option value={0} disabled>Select a Member</option>
-              {members?.map((m: any) => (
-                <option key={m.id} value={m.id}>{m.user_detail?.first_name || m.user_detail?.email}</option>
+              <option value="">Select Member</option>
+              {members?.map((m) => (
+                <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
               ))}
             </select>
           </div>

@@ -48,15 +48,15 @@ export const DepositFilters = ({ onFilterChange }: DepositFiltersProps) => {
   return (
     <div className="filters-container">
       <select value={householdId} onChange={(e) => { setHouseholdId(e.target.value); setMember(''); }}>
-        <option value="">All Households (for members)</option>
-        {households?.map((h: any) => (
+        <option value="">All Households</option>
+        {households?.map((h) => (
           <option key={h.id} value={h.id}>{h.name}</option>
         ))}
       </select>
 
       <select value={member} onChange={(e) => setMember(e.target.value)} disabled={!householdId}>
         <option value="">All Members</option>
-        {members?.map((m: any) => (
+        {members?.map((m) => (
           <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
         ))}
       </select>

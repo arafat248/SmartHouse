@@ -45,7 +45,7 @@ export function DashboardCharts({
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Amount']}
+                  formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Amount']}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend layout="horizontal" verticalAlign="bottom" align="center" />
@@ -91,7 +91,7 @@ export function DashboardCharts({
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                 <Tooltip 
-                  formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Expense']}
+                  formatter={(value: number) => [`$${Number(value).toFixed(2)}`, 'Expense']}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Line type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} name="Total Expenses" />

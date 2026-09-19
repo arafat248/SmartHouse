@@ -1,8 +1,10 @@
+import type { HouseholdMember } from './household';
+
 export interface Meal {
   id: number;
   household: number;
   member: number;
-  member_detail: any;
+  member_detail: HouseholdMember;
   date: string;
   breakfast: string;
   lunch: string;
