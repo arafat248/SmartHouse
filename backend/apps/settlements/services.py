@@ -60,7 +60,7 @@ class SettlementCalculator:
         # Calculate Meal Rate
         meal_rate = Decimal('0.0000')
         if total_meals > Decimal('0.00'):
-            meal_rate = total_meal_expense / total_meals
+            meal_rate = (total_meal_expense / total_meals).quantize(Decimal('0.0001'))
             
         settlement.meal_rate = meal_rate
         settlement.save()

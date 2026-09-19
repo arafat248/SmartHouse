@@ -1,15 +1,17 @@
-import React from 'react';
+import { forwardRef, useId } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
-  leftIcon?: React.ReactNode;
+  leftIcon?: ReactNode;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className = '', label, error, helperText, leftIcon, id, ...props }, ref) => {
-    const inputId = id || Math.random().toString(36).substring(7);
+    const defaultId = useId();
+    const inputId = id || defaultId;
 
     return (
       <div className="w-full">

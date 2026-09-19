@@ -1,4 +1,7 @@
 /* Tailwind handles most styling now */
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  background-color: #f8fafc; /* bg-slate-50 */
+  color: #0f172a; /* text-slate-900 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

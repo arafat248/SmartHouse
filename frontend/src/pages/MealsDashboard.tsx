@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { 
   useGetMealsQuery, 
   useCreateMealMutation, 
@@ -6,17 +6,17 @@ import {
   useDeleteMealMutation 
 } from '../features/meals/mealsApi';
 import { useGetHouseholdsQuery, useGetMembersQuery } from '../features/households/householdsApi';
-import { MealTable } from '../components/meals/MealTable';
 import { MealForm } from '../components/meals/MealForm';
 import type { Meal, MealInput } from '../types/meal';
 
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import { Select } from '../components/ui/Select';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { MealTable } from '../components/meals/MealTable';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Plus, Filter, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 export const MealsDashboard: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -83,23 +83,26 @@ export const MealsDashboard: React.FC = () => {
   };
 
   // Calculate monthly summary
-  const summary = useMemo(() => {
+  const calculateTotals = () => {
     let totalBreakfast = 0;
     let totalLunch = 0;
     let totalDinner = 0;
     let totalGuest = 0;
-    let grandTotal = 0;
 
-    meals.forEach((m: Meal) => {
-      totalBreakfast += parseFloat(m.breakfast || '0');
-      totalLunch += parseFloat(m.lunch || '0');
-      totalDinner += parseFloat(m.dinner || '0');
-      totalGuest += parseFloat(m.guest_meals || '0');
-      grandTotal += parseFloat(m.total_meals || '0');
+    meals.forEach(meal => {
+      totalBreakfast += Number(meal.breakfast);
+      totalLunch += Number(meal.lunch);
+      totalDinner += Number(meal.dinner);
+      totalGuest += Number(meal.guest_meals);
     });
 
+    const grandTotal = totalBreakfast + totalLunch + totalDinner + totalGuest;
+
     return { totalBreakfast, totalLunch, totalDinner, totalGuest, grandTotal };
-  }, [meals]);
+  };
+  
+  const totals = calculateTotals();
+  const summary = totals;
 
   return (
     <div>

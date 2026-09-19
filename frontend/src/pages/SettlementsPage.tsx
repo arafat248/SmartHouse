@@ -15,7 +15,7 @@ export const SettlementsPage = () => {
   const [page, setPage] = useState(1);
   const { data: settlementsData, isLoading } = useGetSettlementsQuery({ page });
   
-  const { data: households } = useGetHouseholdsQuery({});
+  const { data: households } = useGetHouseholdsQuery();
   const [householdId, setHouseholdId] = useState('');
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());

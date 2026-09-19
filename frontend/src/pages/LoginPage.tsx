@@ -8,7 +8,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 
 export const LoginPage = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
@@ -20,8 +20,8 @@ export const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const user = await login({ username, password }).unwrap();
-      dispatch(setCredentials(user));
+      const authData = await login({ email, password }).unwrap();
+      dispatch(setCredentials({ user: authData.user, token: authData.access, refreshToken: authData.refresh }));
       navigate(from, { replace: true });
     } catch (err: any) {
       alert(err.data?.detail || 'Failed to login');
@@ -40,12 +40,12 @@ export const LoginPage = () => {
         <CardContent>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <Input 
-              label="Username"
-              type="text"
+              label="Email Address"
+              type="email"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
             <Input 
               label="Password"

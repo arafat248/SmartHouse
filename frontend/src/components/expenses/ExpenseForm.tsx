@@ -14,7 +14,7 @@ interface ExpenseFormProps {
 }
 
 export const ExpenseForm = ({ expense, categories, onSave, onCancel }: ExpenseFormProps) => {
-  const { data: households } = useGetHouseholdsQuery({});
+  const { data: households } = useGetHouseholdsQuery();
   const [householdId, setHouseholdId] = useState(expense?.household?.toString() || '');
   
   const { data: members } = useGetMembersQuery(Number(householdId), {

@@ -1,14 +1,16 @@
-import React from 'react';
+import { forwardRef, useId } from 'react';
+import type { SelectHTMLAttributes } from 'react';
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   helperText?: string;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className = '', label, error, helperText, id, children, ...props }, ref) => {
-    const selectId = id || Math.random().toString(36).substring(7);
+    const defaultId = useId();
+    const selectId = id || defaultId;
 
     return (
       <div className="w-full">

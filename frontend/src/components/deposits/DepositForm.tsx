@@ -22,7 +22,7 @@ const PAYMENT_METHODS = [
 ];
 
 export const DepositForm = ({ deposit, onSave, onCancel }: DepositFormProps) => {
-  const { data: households } = useGetHouseholdsQuery({});
+  const { data: households } = useGetHouseholdsQuery();
   const [householdId, setHouseholdId] = useState(deposit?.household?.toString() || '');
   
   const { data: members } = useGetMembersQuery(Number(householdId), {

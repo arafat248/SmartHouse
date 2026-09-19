@@ -35,7 +35,7 @@ export const ExpenseTable = ({ expenses, onEdit, onDelete }: ExpenseTableProps) 
               <TableCell>{new Date(expense.expense_date).toLocaleDateString()}</TableCell>
               <TableCell className="font-medium text-slate-900">{expense.title}</TableCell>
               <TableCell>
-                <Badge variant="secondary">
+                <Badge variant="default">
                   {expense.category_detail?.name || 'Uncategorized'}
                 </Badge>
               </TableCell>

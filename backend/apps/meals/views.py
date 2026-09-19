@@ -70,7 +70,7 @@ class MealViewSet(viewsets.ModelViewSet):
         create_audit_log(
             request=self.request,
             action='CREATE_MEAL',
-            description=f"Logged {meal.meal_count} meal(s) for {meal.member.user.first_name} on {meal.date}",
+            description=f"Logged {meal.total_meals} meal(s) for {meal.member.user.first_name} on {meal.date}",
             household=meal.household,
             entity='Meal',
             entity_id=meal.id

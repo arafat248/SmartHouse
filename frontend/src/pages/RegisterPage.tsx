@@ -6,7 +6,6 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 
 export const RegisterPage = () => {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -17,7 +16,7 @@ export const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register({ username, email, password, first_name: firstName, last_name: lastName }).unwrap();
+      await register({ email, password, first_name: firstName, last_name: lastName }).unwrap();
       alert('Registration successful. Please login.');
       navigate('/login');
     } catch (err: any) {
@@ -36,13 +35,6 @@ export const RegisterPage = () => {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <Input 
-              label="Username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
             <Input 
               label="Email Address"
               type="email"

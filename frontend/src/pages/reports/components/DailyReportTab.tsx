@@ -84,7 +84,7 @@ export function DailyReportTab() {
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                     <RechartsTooltip 
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      labelFormatter={(val: string | number) => new Date(val).toLocaleDateString()}
+                      labelFormatter={(val: any) => new Date(val).toLocaleDateString()}
                     />
                     <Legend />
                     <Area type="monotone" dataKey="total_expense" name="Expenses" stroke="#ef4444" fillOpacity={1} fill="url(#colorExpense)" />

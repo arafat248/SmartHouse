@@ -33,7 +33,7 @@ export const MealTable: React.FC<MealTableProps> = ({ meals, onEdit, onDelete })
           meals.map((meal) => (
             <TableRow key={meal.id}>
               <TableCell>{new Date(meal.date).toLocaleDateString()}</TableCell>
-              <TableCell>{meal.member_detail?.user_detail?.first_name || meal.member_detail?.user_detail?.email || `Member ${meal.member}`}</TableCell>
+              <TableCell>{meal.member_detail?.user?.first_name || meal.member_detail?.user?.email || `Member ${meal.member}`}</TableCell>
               <TableCell>{meal.breakfast}</TableCell>
               <TableCell>{meal.lunch}</TableCell>
               <TableCell>{meal.dinner}</TableCell>

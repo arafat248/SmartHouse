@@ -25,7 +25,7 @@ export const DepositFilters = ({ onFilterChange }: DepositFiltersProps) => {
   const [dateRange, setDateRange] = useState('');
   
   const [householdId, setHouseholdId] = useState('');
-  const { data: households } = useGetHouseholdsQuery({});
+  const { data: households } = useGetHouseholdsQuery();
   const { data: members } = useGetMembersQuery(Number(householdId), {
     skip: !householdId,
   });
