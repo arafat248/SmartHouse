@@ -9,11 +9,19 @@ import { useGetHouseholdsQuery, useGetMembersQuery } from '../features/household
 import { MealTable } from '../components/meals/MealTable';
 import { MealForm } from '../components/meals/MealForm';
 import type { Meal, MealInput } from '../types/meal';
-import './MealsDashboard.css';
+
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Select } from '../components/ui/Select';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
+import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Plus, Filter, X } from 'lucide-react';
 
 export const MealsDashboard: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | undefined>(undefined);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   
   // Filters
   const [filterMonth, setFilterMonth] = useState<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
@@ -36,7 +44,7 @@ export const MealsDashboard: React.FC = () => {
 
   const [createMeal] = useCreateMealMutation();
   const [updateMeal] = useUpdateMealMutation();
-  const [deleteMeal] = useDeleteMealMutation();
+  const [deleteMeal, { isLoading: isDeleting }] = useDeleteMealMutation();
 
   const handleCreateNew = () => {
     setEditingMeal(undefined);
@@ -48,12 +56,15 @@ export const MealsDashboard: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteMeal(id).unwrap();
-    } catch (err) {
-      console.error('Failed to delete meal', err);
-      alert('Failed to delete meal');
+  const handleDelete = async () => {
+    if (deleteConfirmId !== null) {
+      try {
+        await deleteMeal(deleteConfirmId).unwrap();
+        setDeleteConfirmId(null);
+      } catch (err) {
+        console.error('Failed to delete meal', err);
+        alert('Failed to delete meal');
+      }
     }
   };
 
@@ -65,7 +76,7 @@ export const MealsDashboard: React.FC = () => {
         await createMeal(formData).unwrap();
       }
       setIsFormOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to save meal', err);
       alert(err.data?.non_field_errors?.[0] || 'Failed to save meal. Ensure no duplicate entry exists for this date.');
     }
@@ -91,84 +102,96 @@ export const MealsDashboard: React.FC = () => {
   }, [meals]);
 
   return (
-    <div className="meals-dashboard">
-      <div className="dashboard-header">
-        <h1>Meals Dashboard</h1>
-        <button className="btn-primary" onClick={handleCreateNew}>+ New Meal Entry</button>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Meals Dashboard</h1>
+        <Button onClick={handleCreateNew} leftIcon={<Plus className="h-5 w-5" />}>
+          New Meal Entry
+        </Button>
       </div>
 
-      <div className="filters-card">
-        <h3>Filters</h3>
-        <div className="filters-container">
-          <div className="filter-group">
-            <label>Month:</label>
-            <input 
-              type="month" 
-              value={filterMonth} 
-              onChange={(e) => { setFilterMonth(e.target.value); setFilterDate(''); }} 
-            />
+      <Card className="mb-6">
+        <CardContent className="py-5">
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="w-full md:w-1/4">
+              <Input 
+                label="Month"
+                type="month" 
+                value={filterMonth} 
+                onChange={(e) => { setFilterMonth(e.target.value); setFilterDate(''); }} 
+              />
+            </div>
+            <div className="w-full md:w-1/4">
+              <Input 
+                label="Specific Date"
+                type="date" 
+                value={filterDate} 
+                onChange={(e) => { setFilterDate(e.target.value); setFilterMonth(''); }} 
+              />
+            </div>
+            <div className="w-full md:w-1/4">
+              <Select 
+                label="Member"
+                value={filterMember} 
+                onChange={(e) => setFilterMember(e.target.value ? parseInt(e.target.value, 10) : '')}
+              >
+                <option value="">All Members</option>
+                {members?.map((m) => (
+                  <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Button variant="outline" onClick={() => {
+                setFilterMonth(new Date().toISOString().slice(0, 7));
+                setFilterDate('');
+                setFilterMember('');
+              }} leftIcon={<X className="h-4 w-4" />}>
+                Reset Filters
+              </Button>
+            </div>
           </div>
-          <div className="filter-group">
-            <label>Specific Date:</label>
-            <input 
-              type="date" 
-              value={filterDate} 
-              onChange={(e) => { setFilterDate(e.target.value); setFilterMonth(''); }} 
-            />
-          </div>
-          <div className="filter-group">
-            <label>Member:</label>
-            <select 
-              value={filterMember} 
-              onChange={(e) => setFilterMember(e.target.value ? parseInt(e.target.value, 10) : '')}
-            >
-              <option value="">All Members</option>
-              {members?.map((m) => (
-                <option key={m.id} value={m.id}>{m.user_detail?.first_name || m.user_detail?.email}</option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-group reset-group">
-            <button className="btn-secondary" onClick={() => {
-              setFilterMonth(new Date().toISOString().slice(0, 7));
-              setFilterDate('');
-              setFilterMember('');
-            }}>Reset Filters</button>
-          </div>
-        </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-slate-500">Breakfast</p>
+            <p className="text-2xl font-bold text-slate-900">{summary.totalBreakfast}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-slate-500">Lunch</p>
+            <p className="text-2xl font-bold text-slate-900">{summary.totalLunch}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-slate-500">Dinner</p>
+            <p className="text-2xl font-bold text-slate-900">{summary.totalDinner}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-slate-500">Guest Meals</p>
+            <p className="text-2xl font-bold text-slate-900">{summary.totalGuest}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-indigo-50 border-indigo-100">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium text-indigo-600">Total Meals</p>
+            <p className="text-2xl font-bold text-indigo-900">{summary.grandTotal}</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="summary-card">
-        <h3>Summary ({filterDate ? `Date: ${filterDate}` : `Month: ${filterMonth}`})</h3>
-        <div className="summary-stats">
-          <div className="stat-box">
-            <span className="stat-label">Breakfast</span>
-            <span className="stat-value">{summary.totalBreakfast}</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-label">Lunch</span>
-            <span className="stat-value">{summary.totalLunch}</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-label">Dinner</span>
-            <span className="stat-value">{summary.totalDinner}</span>
-          </div>
-          <div className="stat-box">
-            <span className="stat-label">Guest Meals</span>
-            <span className="stat-value">{summary.totalGuest}</span>
-          </div>
-          <div className="stat-box highlight">
-            <span className="stat-label">Total Meals</span>
-            <span className="stat-value">{summary.grandTotal}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="table-card">
+      <div className="mb-6">
         {isLoading ? (
-          <div className="loading-state">Loading meals...</div>
+          <LoadingSkeleton rows={5} />
         ) : (
-          <MealTable meals={meals} onEdit={handleEdit} onDelete={handleDelete} />
+          <MealTable meals={meals} onEdit={handleEdit} onDelete={(id) => setDeleteConfirmId(id)} />
         )}
       </div>
 
@@ -180,6 +203,18 @@ export const MealsDashboard: React.FC = () => {
           defaultDate={filterDate || undefined}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+        title="Delete Meal"
+        message="Are you sure you want to delete this meal entry? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
+

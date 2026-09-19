@@ -10,12 +10,18 @@ import { ExpenseTable } from '../components/expenses/ExpenseTable';
 import { ExpenseForm } from '../components/expenses/ExpenseForm';
 import { ExpenseFilters } from '../components/expenses/ExpenseFilters';
 import type { Expense } from '../types/expense';
+import { Button } from '../components/ui/Button';
+import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Plus } from 'lucide-react';
 
 export const ExpensesPage = () => {
   const [filters, setFilters] = useState({ category: '', search: '', date_range: '' });
   const [page, setPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: categories = [] } = useGetExpenseCategoriesQuery();
   const { data: expensesData, isLoading, refetch } = useGetExpensesQuery({
@@ -50,60 +56,68 @@ export const ExpensesPage = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
+  const handleDelete = async () => {
+    if (deleteConfirmId !== null) {
+      setIsDeleting(true);
       try {
-        await deleteExpense(id).unwrap();
+        await deleteExpense(deleteConfirmId).unwrap();
+        setDeleteConfirmId(null);
       } catch (error) {
         console.error('Failed to delete expense', error);
         alert('You do not have permission to delete this expense.');
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Expenses</h1>
-        <button 
-          className="btn-primary" 
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Expenses</h1>
+        <Button 
           onClick={() => {
             setEditingExpense(undefined);
             setIsFormOpen(true);
           }}
+          leftIcon={<Plus className="h-5 w-5" />}
         >
           Add Expense
-        </button>
+        </Button>
       </div>
 
       <ExpenseFilters categories={categories} onFilterChange={handleFilterChange} />
 
       {isLoading ? (
-        <p>Loading expenses...</p>
+        <LoadingSkeleton rows={5} />
       ) : (
         <>
           <ExpenseTable 
             expenses={expensesData?.results || []} 
             onEdit={(e) => { setEditingExpense(e); setIsFormOpen(true); }} 
-            onDelete={handleDelete} 
+            onDelete={(id) => setDeleteConfirmId(id)} 
           />
           
-          <div className="pagination">
-            <button 
-              disabled={!expensesData?.previous} 
-              onClick={() => setPage((p) => p - 1)}
-              className="btn-secondary"
-            >
-              Previous
-            </button>
-            <span style={{ margin: '0 1rem' }}>Page {page}</span>
-            <button 
-              disabled={!expensesData?.next} 
-              onClick={() => setPage((p) => p + 1)}
-              className="btn-secondary"
-            >
-              Next
-            </button>
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-slate-500">
+              Showing page {page}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                disabled={!expensesData?.previous} 
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Previous
+              </Button>
+              <Button 
+                variant="outline"
+                disabled={!expensesData?.next} 
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </>
       )}
@@ -119,6 +133,18 @@ export const ExpensesPage = () => {
           }} 
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+        title="Delete Expense"
+        message="Are you sure you want to delete this expense? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
+

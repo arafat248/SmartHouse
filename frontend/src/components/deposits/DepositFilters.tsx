@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import { useGetHouseholdsQuery, useGetMembersQuery } from '../../features/households/householdsApi';
+import { Card, CardContent } from '../ui/Card';
+import { Select } from '../ui/Select';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
+import { Filter, X } from 'lucide-react';
 
 interface DepositFiltersProps {
   onFilterChange: (filters: { member: string; payment_method: string; deposit_date__gte: string }) => void;
@@ -19,10 +24,6 @@ export const DepositFilters = ({ onFilterChange }: DepositFiltersProps) => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [dateRange, setDateRange] = useState('');
   
-  // We'll need a household to fetch members, or we just fetch all members if the API supports it.
-  // For simplicity, we can fetch households and then let the user pick one, but if we don't know the household,
-  // maybe we don't show member filter until a household is selected, or we just skip it if it's too complex.
-  // Assuming we can pass member ID to filter directly.
   const [householdId, setHouseholdId] = useState('');
   const { data: households } = useGetHouseholdsQuery({});
   const { data: members } = useGetMembersQuery(Number(householdId), {
@@ -46,37 +47,52 @@ export const DepositFilters = ({ onFilterChange }: DepositFiltersProps) => {
   };
 
   return (
-    <div className="filters-container">
-      <select value={householdId} onChange={(e) => { setHouseholdId(e.target.value); setMember(''); }}>
-        <option value="">All Households</option>
-        {households?.map((h) => (
-          <option key={h.id} value={h.id}>{h.name}</option>
-        ))}
-      </select>
-
-      <select value={member} onChange={(e) => setMember(e.target.value)} disabled={!householdId}>
-        <option value="">All Members</option>
-        {members?.map((m) => (
-          <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
-        ))}
-      </select>
-
-      <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-        <option value="">All Payment Methods</option>
-        {PAYMENT_METHODS.map((pm) => (
-          <option key={pm.value} value={pm.value}>{pm.label}</option>
-        ))}
-      </select>
-
-      <input 
-        type="date" 
-        value={dateRange} 
-        onChange={(e) => setDateRange(e.target.value)} 
-        placeholder="From Date"
-      />
-
-      <button className="btn-primary" onClick={handleApply}>Apply Filters</button>
-      <button className="btn-secondary" onClick={handleClear}>Clear</button>
-    </div>
+    <Card className="mb-6">
+      <CardContent className="py-5">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="w-full md:w-1/4">
+            <Select label="Household" value={householdId} onChange={(e) => { setHouseholdId(e.target.value); setMember(''); }}>
+              <option value="">All Households</option>
+              {households?.map((h) => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-full md:w-1/4">
+            <Select label="Member" value={member} onChange={(e) => setMember(e.target.value)} disabled={!householdId}>
+              <option value="">All Members</option>
+              {members?.map((m) => (
+                <option key={m.id} value={m.id}>{m.user.first_name} {m.user.last_name}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-full md:w-1/4">
+            <Select label="Payment Method" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+              <option value="">All Methods</option>
+              {PAYMENT_METHODS.map((pm) => (
+                <option key={pm.value} value={pm.value}>{pm.label}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-full md:w-1/4">
+            <Input 
+              label="From Date"
+              type="date" 
+              value={dateRange} 
+              onChange={(e) => setDateRange(e.target.value)} 
+            />
+          </div>
+          <div className="flex gap-2 w-full md:w-auto">
+            <Button variant="primary" onClick={handleApply} leftIcon={<Filter className="h-4 w-4" />}>
+              Filter
+            </Button>
+            <Button variant="outline" onClick={handleClear} leftIcon={<X className="h-4 w-4" />}>
+              Clear
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
+

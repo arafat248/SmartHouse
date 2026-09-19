@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import { MainLayout } from './layouts/MainLayout';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { MealsDashboard } from './pages/MealsDashboard';
 import { ExpensesPage } from './pages/ExpensesPage';
 import { DepositsPage } from './pages/DepositsPage';
@@ -16,8 +18,8 @@ import './App.css';
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<div>Login Page (Placeholder)</div>} />
-      <Route path="/register" element={<div>Register Page (Placeholder)</div>} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
@@ -39,3 +41,4 @@ function App() {
 }
 
 export default App;
+

@@ -10,12 +10,18 @@ import { DepositForm } from '../components/deposits/DepositForm';
 import { DepositFilters } from '../components/deposits/DepositFilters';
 import { DepositSummary } from '../components/deposits/DepositSummary';
 import type { Deposit, DepositInput } from '../types/deposit';
+import { Button } from '../components/ui/Button';
+import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Plus } from 'lucide-react';
 
 export const DepositsPage = () => {
   const [filters, setFilters] = useState({ member: '', payment_method: '', deposit_date__gte: '' });
   const [page, setPage] = useState(1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDeposit, setEditingDeposit] = useState<Deposit | undefined>(undefined);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: depositsData, isLoading, refetch } = useGetDepositsQuery({
     page,
@@ -49,36 +55,40 @@ export const DepositsPage = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this deposit?')) {
+  const handleDelete = async () => {
+    if (deleteConfirmId !== null) {
+      setIsDeleting(true);
       try {
-        await deleteDeposit(id).unwrap();
+        await deleteDeposit(deleteConfirmId).unwrap();
+        setDeleteConfirmId(null);
       } catch (error) {
         console.error('Failed to delete deposit', error);
         alert('You do not have permission to delete this deposit.');
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Deposit Management</h1>
-        <button 
-          className="btn-primary" 
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Deposit Management</h1>
+        <Button 
           onClick={() => {
             setEditingDeposit(undefined);
             setIsFormOpen(true);
           }}
+          leftIcon={<Plus className="h-5 w-5" />}
         >
           Add Deposit
-        </button>
+        </Button>
       </div>
 
       <DepositFilters onFilterChange={handleFilterChange} />
 
       {isLoading ? (
-        <p>Loading deposits...</p>
+        <LoadingSkeleton rows={5} />
       ) : (
         <>
           <DepositSummary deposits={depositsData?.results || []} />
@@ -86,25 +96,29 @@ export const DepositsPage = () => {
           <DepositTable 
             deposits={depositsData?.results || []} 
             onEdit={(d) => { setEditingDeposit(d); setIsFormOpen(true); }} 
-            onDelete={handleDelete} 
+            onDelete={(id) => setDeleteConfirmId(id)} 
           />
           
-          <div className="pagination">
-            <button 
-              disabled={!depositsData?.previous} 
-              onClick={() => setPage((p) => p - 1)}
-              className="btn-secondary"
-            >
-              Previous
-            </button>
-            <span style={{ margin: '0 1rem' }}>Page {page}</span>
-            <button 
-              disabled={!depositsData?.next} 
-              onClick={() => setPage((p) => p + 1)}
-              className="btn-secondary"
-            >
-              Next
-            </button>
+          <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-slate-500">
+              Showing page {page}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                disabled={!depositsData?.previous} 
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Previous
+              </Button>
+              <Button 
+                variant="outline"
+                disabled={!depositsData?.next} 
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </>
       )}
@@ -119,6 +133,18 @@ export const DepositsPage = () => {
           }} 
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+        title="Delete Deposit"
+        message="Are you sure you want to delete this deposit? This action cannot be undone."
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
+

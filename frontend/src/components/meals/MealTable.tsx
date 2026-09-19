@@ -1,5 +1,7 @@
 import type { Meal } from '../../types/meal';
-
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '../ui/Table';
+import { Button } from '../ui/Button';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface MealTableProps {
   meals: Meal[];
@@ -9,48 +11,49 @@ interface MealTableProps {
 
 export const MealTable: React.FC<MealTableProps> = ({ meals, onEdit, onDelete }) => {
   return (
-    <div className="meal-table-container">
-      <table className="meal-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Member</th>
-            <th>Breakfast</th>
-            <th>Lunch</th>
-            <th>Dinner</th>
-            <th>Guest Meals</th>
-            <th>Total</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {meals.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="empty-state">No meals found for the selected filters.</td>
-            </tr>
-          ) : (
-            meals.map((meal) => (
-              <tr key={meal.id}>
-                <td>{meal.date}</td>
-                <td>{meal.member_detail?.user_detail?.first_name || meal.member_detail?.user_detail?.email || `Member ${meal.member}`}</td>
-                <td>{meal.breakfast}</td>
-                <td>{meal.lunch}</td>
-                <td>{meal.dinner}</td>
-                <td>{meal.guest_meals}</td>
-                <td className="total-cell">{meal.total_meals}</td>
-                <td className="actions-cell">
-                  <button onClick={() => onEdit(meal)} className="btn-edit">Edit</button>
-                  <button onClick={() => {
-                    if (window.confirm('Are you sure you want to delete this meal record?')) {
-                      onDelete(meal.id);
-                    }
-                  }} className="btn-delete">Delete</button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableHead>Date</TableHead>
+        <TableHead>Member</TableHead>
+        <TableHead>Breakfast</TableHead>
+        <TableHead>Lunch</TableHead>
+        <TableHead>Dinner</TableHead>
+        <TableHead>Guest Meals</TableHead>
+        <TableHead>Total</TableHead>
+        <TableHead>Actions</TableHead>
+      </TableHeader>
+      <TableBody>
+        {meals.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={8} className="text-center text-slate-500 py-8">
+              No meals found for the selected filters.
+            </TableCell>
+          </TableRow>
+        ) : (
+          meals.map((meal) => (
+            <TableRow key={meal.id}>
+              <TableCell>{new Date(meal.date).toLocaleDateString()}</TableCell>
+              <TableCell>{meal.member_detail?.user_detail?.first_name || meal.member_detail?.user_detail?.email || `Member ${meal.member}`}</TableCell>
+              <TableCell>{meal.breakfast}</TableCell>
+              <TableCell>{meal.lunch}</TableCell>
+              <TableCell>{meal.dinner}</TableCell>
+              <TableCell>{meal.guest_meals}</TableCell>
+              <TableCell className="font-semibold text-indigo-600">{meal.total_meals}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => onEdit(meal)} leftIcon={<Edit className="h-4 w-4" />}>
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => onDelete(meal.id)} leftIcon={<Trash2 className="h-4 w-4 text-red-500" />}>
+                    <span className="text-red-500">Delete</span>
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 };
+
